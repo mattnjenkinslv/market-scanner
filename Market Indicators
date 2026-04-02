@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scanner">
+<meta name="theme-color" content="#0a0c10">
+<title>Dislocation Scanner</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em'
+font-size='90'>■</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100'
+height='100' rx='20' fill='%230a0c10'/><text x='50' y='62' text-anchor='middle' font-size='55'>■</text></svg>">
+<link
+href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+rel="stylesheet">
+<style>
+:root {
+--bg:#0a0c10;--surface:#111318;--surfaceH:#181b22;--surfaceEl:#1a1d26;
+--border:#1e2230;--borderA:#2a3045;--text:#e8eaf0;--muted:#7a8194;--dim:#4a5068;
+--accent:#00e5a0;--accentD:#00e5a033;--danger:#ff4466;--dangerD:#ff446633;
+--warn:#ffaa00;--warnD:#ffaa0033;--bull:#00e5a0;--bear:#ff4466;
+--neut:#5588ff;--neutD:#5588ff33;
+--low:#44aaff;--lowD:#44aaff22;--med:#ffaa00;--medD:#ffaa0022;--high:#ff4466;--highD:#ff446622;
+--font:'JetBrains Mono','Fira Code','SF Mono',monospace;
+--fontD:'Inter','SF Pro Display',-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;-webkit-font-smoothing:antialiased;overflow-x:hidde
+n}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input:focus{border-color:var(--accent)!important;outline:none}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fade{animation:fadeIn .25s ease-out both}
+.header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;backgrou
+nd:linear-gradient(180deg,var(--surface),var(--bg));position:sticky;top:0;z-index:100}
+.logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--neut));display:flex;align-items:c
+enter;justify-content:center;font-size:15px;color:var(--bg);flex-shrink:0}
+.title{font-family:var(--fontD);font-size:15px;font-weight:700;letter-spacing:-0.5px}
+.sub{font-size:9px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.main{display:flex;min-height:calc(100vh - 58px)}
+.sidebar{width:320px;min-width:320px;border-right:1px solid var(--border);overflow-y:auto;padding:12px;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:14px 16px}
+.section-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display
+:flex;align-items:center;gap:6px}
+.dot{width:5px;height:5px;border-radius:50%}
+.chip{padding:3px 9px;border-radius:12px;font-size:9px;font-weight:600;cursor:pointer;font-family:var(--font);border:1px solid
+var(--border);color:var(--muted);background:transparent;display:inline-block;margin:0 3px 3px 0;transition:all .15s}
+.chip.active{border-color:var(--accent);background:var(--accentD);color:var(--accent)}
+.ind-row{display:flex;align-items:center;gap:5px;padding:5px 7px;border-radius:4px;background:var(--surface);border:1px solid
+var(--border);margin-bottom:2px}
+.ind-dot{width:5px;height:5px;border-radius:2px;flex-shrink:0}
+.ind-label{font-size:9px;font-weight:600;color:var(--muted);width:48px;flex-shrink:0}
+.ind-input{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:4px
+5px;color:var(--text);font-family:var(--font);font-size:11px;flex:1;min-width:0}
+.ind-change{background:var(--bg);border-radius:3px;padding:4px 5px;font-family:var(--font);font-size:11px;width:52px;flex-shrink:0}
+.btn{padding:7px 14px;border-radius:5px;border:1px solid var(--accent);background:var(--accentD);color:var(--accent);font-family:var(-
+-font);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;transition:all .15s}
+.btn:hover{background:var(--accent);color:var(--bg)}
+.cap-input{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px
+6px;color:var(--accent);font-family:var(--font);font-size:11px;font-weight:700;width:68px}
+.anomaly-card{padding:7px 8px;border-radius:4px;border:1px solid var(--border);margin-bottom:2px}
+.severity{padding:1px 5px;border-radius:3px;font-size:8px;font-weight:700;display:inline-block}
+.sev-HIGH{background:var(--dangerD);color:var(--danger)}
+.sev-MEDIUM{background:var(--warnD);color:var(--warn)}
+.sev-LOW{background:var(--neutD);color:var(--neut)}
+.regime-box{padding:10px 14px;border-radius:7px;background:var(--surface);border:1px solid
+var(--borderA);margin-bottom:12px;font-size:12px;line-height:1.6}
+.trade-card{margin-bottom:10px;border-radius:7px;border:1px solid var(--borderA);background:var(--surface);overflow:hidden}
+.trade-header{padding:11px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background
+.15s}
+.trade-header.open{background:var(--surfaceEl);border-bottom:1px solid var(--border)}
+.trade-thesis{padding:8px 14px;font-size:11px;line-height:1.6;border-bottom:1px solid var(--border)}
+.trade-body{padding:10px 12px}
+.risk-card{padding:13px 14px;border-radius:7px;margin-bottom:7px}
+.risk-card.low{border:1px solid #44aaff33;background:var(--lowD)}
+.risk-card.med{border:1px solid #ffaa0033;background:var(--medD)}
+.risk-card.high{border:1px solid #ff446633;background:var(--highD)}
+.risk-badge{padding:2px
+7px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.8px;display:inline-flex;align-items:center;gap:5px}
+.risk-badge.low{background:#44aaff22;color:var(--low);border:1px solid #44aaff44}
+.risk-badge.med{background:#ffaa0022;color:var(--med);border:1px solid #ffaa0044}
+.risk-badge.high{background:#ff446622;color:var(--high);border:1px solid #ff446644}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin:9px 0}
+Lines 83–164
+.metric-box{background:rgba(10,12,16,.5);border-radius:4px;padding:7px}
+.metric-label{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.metric-val{font-size:12px;font-weight:700}
+.metric-sub{font-size:9px;color:var(--muted);margin-top:1px}
+.technique-box{padding:9px 11px;border-radius:5px;margin-top:8px}
+.technique-box.low{background:linear-gradient(135deg,#44aaff08,#44aaff04);border:1px solid #44aaff22}
+.technique-box.med{background:linear-gradient(135deg,#ffaa0008,#ffaa0004);border:1px solid #ffaa0022}
+.technique-box.high{background:linear-gradient(135deg,#ff446608,#ff446604);border:1px solid #ff446622}
+.technique-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:5px;display:flex;align-items:
+center;gap:5px}
+.technique-text{font-size:11px;color:var(--text);line-height:1.7}
+.filter-chip{padding:3px 7px;border-radius:3px;font-size:9px;font-weight:700;cursor:pointer;letter-spacing:.5px;border:1px solid
+var(--border);color:var(--dim);background:transparent;display:inline-block;margin-left:2px;transition:all .15s}
+.filter-chip.active{border-color:currentColor}
+.matrix{display:grid;gap:2px;margin-bottom:12px}
+.matrix-cell{aspect-ratio:1;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:600}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px;color:var(--dim);text-align:center;ga
+p:10px}
+.empty-icon{font-size:30px;opacity:.3}
+@media(max-width:768px){
+.main{flex-direction:column}
+.sidebar{width:100%;min-width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:45vh}
+.content{min-height:55vh}
+.metric-grid{grid-template-columns:1fr 1fr 1fr}
+.header{padding:10px 12px}
+.title{font-size:14px}
+}
+</style>
+</head>
+<body>
+<div class="header">
+<div style="display:flex;align-items:center;gap:10px">
+<div class="logo">■</div>
+<div>
+<div class="title">Dislocation Scanner</div>
+<div class="sub">Anomaly Detection • Risk-Tiered Execution</div>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:7px">
+<span style="font-size:9px;color:var(--dim)">$</span>
+<input type="number" id="capital" value="2500" class="cap-input">
+<button class="btn" onclick="runScan()">■ Scan</button>
+</div>
+</div>
+<div class="main">
+<div class="sidebar" id="sidebar"></div>
+<div class="content" id="content"></div>
+</div>
+<script>
+const IND_META = {
+SPX:{label:"S&P 500",color:"#00e5a0"},VIX:{label:"VIX",color:"#cc44ff"},
+DXY:{label:"US Dollar",color:"#44aaff"},TNX:{label:"10Y Yield",color:"#ff6688"},
+GOLD:{label:"Gold",color:"#ffd700"},OIL:{label:"Crude Oil",color:"#ff8844"},
+HYG:{label:"HY Credit",color:"#44ddaa"}
+};
+const DEFAULTS = {
+SPX:{value:6368.85,change:-1.67},VIX:{value:31,change:4.01},DXY:{value:104.8,change:0.55},
+TNX:{value:4.48,change:1.2},GOLD:{value:4785,change:-2.1},OIL:{value:99.64,change:5.46},
+HYG:{value:74.2,change:-1.3}
+};
+let indicators = JSON.parse(JSON.stringify(DEFAULTS));
+let regime = "stagflation";
+let anomalies = [];
+let trades = [];
+let expanded = {};
+let riskFilter = "all";
+const CORRS = [
+{pair:["SPX"
+,
+{pair:["SPX"
+,
+{pair:["SPX"
+,
+"VIX"],expected:-0.85,desc:"Fear gauge inversely tracks equities"},
+"DXY"],expected:-0.3,desc:"Risk-on weakens safe-haven dollar"},
+"TNX"],expected:0.4,desc:"Growth optimism rotates out of bonds"},
+{pair:["SPX"
+{pair:["SPX"
+{pair:["SPX"
+{pair:["VIX"
+{pair:["DXY"
+,
+,
+,
+,
+,
+"GOLD"],expected:-0.25,desc:"Risk-on reduces safe-haven demand"},
+"OIL"],expected:0.35,desc:"Growth optimism increases oil demand"},
+"HYG"],expected:0.75,desc:"Risk appetite supports junk bonds"},
+"GOLD"],expected:0.4,desc:"Fear drives safe-haven gold buying"},
+"GOLD"],expected:-0.6,desc:"Strong dollar makes gold expensive"},
+Lines 165–246
+{pair:["DXY"
+{pair:["TNX"
+{pair:["OIL"
+{pair:["VIX"
+{pair:["OIL"
+,
+,
+,
+,
+,
+"OIL"],expected:-0.4,desc:"Strong dollar reduces foreign oil demand"},
+"GOLD"],expected:-0.45,desc:"Higher rates increase gold opportunity cost"},
+"TNX"],expected:0.35,desc:"Energy inflation pushes rate expectations"},
+"HYG"],expected:-0.7,desc:"Fear widens credit spreads"},
+"GOLD"],expected:0.3,desc:"Inflation hedge correlation"}
+];
+const RULES={
+"SPX/VIX":{bull:{thesis:"VIX suppressed despite equity weakness — complacency before further selling. Buy volatility.",catalyst:"Next
+macro shock triggers delayed VIX spike",low:{inst:"VIXY",type:"Volatility ETF",tech:"Buy VIXY at market open. Tracks short-term VIX
+futures. Stop 8% below entry. Scale out half at +15%, trail rest. Hold max 2 weeks due to contango decay."},med:{inst:"UVXY",type:"1.5x
+Leveraged VIX",tech:"Buy UVXY with limit order near session low. 1.5x leveraged VIX — moves fast. Hard stop 12% below. Take 50% at
++25%, trail rest. Max hold 5-7 days."},high:{inst:"SQQQ",type:"3x Inverse Nasdaq",tech:"Buy SQQQ for 3x short tech exposure. If VIX
+lagging, put protection is cheap — next move down will be violent. Enter at open, stop 10%. Target +20-30%."}},bear:{thesis:"VIX
+overdone vs actual equity damage — fear excessive. Sell volatility / buy the dip.",catalyst:"VIX mean-reverts as options decay and
+headline risk fades",low:{inst:"SPY",type:"S&P 500 ETF",tech:"Buy SPY on intraday dip. Elevated VIX with stocks holding = hedged
+market, actually bullish. Stop at swing low. Target 3-5% bounce."},med:{inst:"SSO",type:"2x S&P 500 ETF",tech:"Buy SSO for 2x upside on
+S&P bounce. Enter on red-to-green reversal. Stop 8% below. Target +12-18%."},high:{inst:"TQQQ",type:"3x Nasdaq-100 ETF",tech:"Buy TQQQ
+for max upside on tech snapback. Oversold + high VIX = violent bounces. Enter first 30 min on reversal. Stop 10%. Target +20-30%."}}},
+"SPX/OIL":{bull:{thesis:"Oil rising while stocks fall — stagflation signature. Energy is the only safe harbor.",catalyst:"Supply
+disruption persists, energy earnings beat while market deteriorates",low:{inst:"XLE",type:"Energy Sector ETF",tech:"Buy XLE at open.
+Holds Exxon, Chevron, ConocoPhillips. Stop 7% below. Target +10% in 2-3 weeks, +18% if oil holds above $95."},med:{inst:"GUSH",type:"2x
+Oil & Gas E&P Bull",tech:"Buy GUSH for 2x E&P exposure. Enter on oil pullback day. Stop 12% below. Take half at +20%, trail
+rest."},high:{inst:"NRGU",type:"3x Big Oil ETN",tech:"Buy/add NRGU for 3x big oil exposure. Enter at open. Hard stop 13% below. Target
+1: +20%, Target 2: +35%. War-supply-shock trade — respect the stop."}},bear:{thesis:"Oil falling while stocks rise — demand optimism
+outpacing reality. Oil catches up or stocks fade.",catalyst:"Oil rebounds on supply constraints or stock rally
+fades",low:{inst:"USO",type:"US Oil Fund",tech:"Buy USO betting oil mean-reverts higher. If stocks rising on growth, oil should follow.
+Stop 6%. Target +8-12%."},med:{inst:"UCO",type:"2x Crude Oil ETF",tech:"Buy UCO for 2x crude exposure. Enter on red day in oil. Stop
+10%. Target +15-20%."},high:{inst:"SQQQ + USO",type:"Pair Trade",tech:"Buy SQQQ (short equities) + USO (long oil). Profits whether oil
+rises or stocks fall. Size each equally. Stop each at 10%."}}},
+"DXY/GOLD":{bull:{thesis:"Gold showing relative strength vs dollar — coiling for breakout when dollar reverses.",catalyst:"Fed dovish
+pivot, dollar reversal, central bank gold buying overwhelms headwind",low:{inst:"GLD",type:"SPDR Gold Shares",tech:"Buy GLD for direct
+gold exposure. Most liquid gold ETF. Stop 5%. Target +8% in 2-4 weeks. Scale: 60% now, 40% on dip."},med:{inst:"UGL",type:"2x Gold
+ETF",tech:"Buy UGL for 2x leveraged gold. Enter near 50-day MA support. Stop 10%. Target 1: +15%, Target 2: +25%. Best for 1-2 week
+swing."},high:{inst:"NUGT",type:"2x Gold Miners Bull",tech:"Buy NUGT — gold miners have operating leverage to gold. When gold rebounds,
+miners move 3-5x. Stop 15%. Target +25-35%."}},bear:{thesis:"Dollar and gold both weak — risk-on, neither safe haven bid. Buy risk
+assets.",catalyst:"Risk appetite returns, capital flows from havens to equities",low:{inst:"SPY",type:"S&P 500 ETF",tech:"Both safe
+havens weak = capital to risk assets. Buy SPY. Stop at 200-day MA. Target +5-8%."},med:{inst:"QQQ",type:"Nasdaq-100 ETF",tech:"Buy QQQ
+for growth exposure in risk-on. Stop 6%. Target +10-15%."},high:{inst:"TQQQ",type:"3x Nasdaq-100 ETF",tech:"Buy TQQQ. Dollar + gold
+both weak = confirmed risk-on. Enter on dip, stop 10%. Target +25-30%."}}},
+"DXY/OIL":{bull:{thesis:"Dollar and oil both rising — supply shock overriding normal inverse. Inflationary squeeze. Go long
+energy.",catalyst:"Supply disruption intensifies, global buyers need more dollars for expensive crude",low:{inst:"XLE",type:"Energy
+Sector ETF",tech:"Buy XLE — US energy benefits from both high oil and strong dollar (sell in USD). Stop 6%. Target
++10-15%."},med:{inst:"GUSH",type:"2x Oil & Gas E&P Bull",tech:"Buy GUSH for leveraged E&P. Double tailwind of strong dollar + high oil
+is rare. Stop 12%. Target +20-25%."},high:{inst:"NRGU",type:"3x Big Oil ETN",tech:"Buy NRGU for max oil leverage. Dollar/oil
+dislocation = supply-driven inflationary shock. Stop 13%. Target +25-35%."}},bear:{thesis:"Dollar and oil both weak — deflationary
+demand destruction. Economy rolling over.",catalyst:"Recession confirmation, demand collapse, central bank
+intervention",low:{inst:"TLT",type:"20+ Year Treasury ETF",tech:"Buy TLT — deflationary bust sends long bonds soaring. Stop 5%. Target
++8-12%."},med:{inst:"TMF",type:"3x Long Treasury ETF",tech:"Buy TMF for 3x long bond exposure. Deflationary shocks crash yields. Stop
+10%. Target +20-30%. Max 1-2 weeks."},high:{inst:"SQQQ + TMF",type:"Short Equities + Long Bonds",tech:"Pair: SQQQ (short stocks) + TMF
+(long bonds). Classic deflation/recession trade. Both profit as economy contracts. Size each 50%."}}},
+"VIX/GOLD":{bull:{thesis:"VIX elevated but gold not rallying — safe-haven flows to dollar not gold. Gold underpriced for this
+fear.",catalyst:"Dollar strength fades, gold catches safe-haven bid, Fed signals dovishness",low:{inst:"GLD",type:"SPDR Gold
+Shares",tech:"Accumulate GLD on weakness. VIX high + gold suppressed = dollar holding gold down — reversal snaps back. Buy in thirds.
+Stop 6%."},med:{inst:"UGL",type:"2x Gold ETF",tech:"Buy UGL for leveraged gold mean-reversion. VIX/Gold divergence resolves within 2-4
+weeks historically. Stop 12%. Target +18-25%."},high:{inst:"NUGT",type:"2x Gold Miners Bull",tech:"Buy NUGT — miners doubly cheap from
+gold weakness + equity selling. When gold rebounds, miners rally 2-3x. Stop 15%. Target +25-40%."}},bear:{thesis:"Gold rising while VIX
+low — speculative buying without real fear. Gold vulnerable to pullback.",catalyst:"Risk appetite returns, speculative gold longs
+unwind",low:{inst:"SLV",type:"Silver ETF",tech:"If gold overextended, rotate to silver (SLV) — lagged, industrial demand support.
+Better value. Stop 7%."},med:{inst:"GLL",type:"2x Inverse Gold",tech:"Buy GLL to short gold. Stop 8% above entry (inverse). Target
++10-15% as gold reverts."},high:{inst:"DUST",type:"2x Bear Gold Miners",tech:"Buy DUST to short gold miners with 2x leverage. If gold
+drops 5%, miners drop 10-15%, DUST doubles that. Hard stop 15%."}}},
+"SPX/HYG":{bull:{thesis:"Credit holding while stocks sell — bond market not confirming selloff. Stocks likely
+bounce.",catalyst:"Dip-buyers step in, credit stability = no systemic risk",low:{inst:"SPY",type:"S&P 500 ETF",tech:"Buy SPY on dip.
+Credit = smart money. If HYG holding, selloff is sentiment-driven. Stop at swing low. Target +5-8%."},med:{inst:"SSO",type:"2x S&P 500
+ETF",tech:"Buy SSO for leveraged bounce. Credit stable + oversold = high-prob mean-reversion. Stop 8%. Target
++12-18%."},high:{inst:"TQQQ",type:"3x Nasdaq-100 ETF",tech:"Buy TQQQ. Credit stable = buying opportunity not crisis. Enter on morning
+weakness. Stop 10%. Target +20-30%."}},bear:{thesis:"Stocks rising but credit weakening — junk bonds flashing warning. Credit leads
+equities 1-2 weeks.",catalyst:"Credit deterioration drags equities, defaults trigger selling",low:{inst:"SH",type:"1x Inverse S&P
+500",tech:"Buy SH for 1:1 inverse. Credit weakness leading equities = most reliable macro signal. Wide stop. Target
++5-8%."},med:{inst:"SPXS",type:"3x Inverse S&P 500",tech:"Buy SPXS for 3x inverse. Credit breaking down while stocks rally = textbook
+divergence. Stop 12%. Target +15-25%."},high:{inst:"SQQQ",type:"3x Inverse Nasdaq",tech:"Buy SQQQ. Credit/equity divergence resolves
+hard and fast. Size aggressively. Hard stop 10%."}}},
+"TNX/GOLD":{bull:{thesis:"Yields and gold both rising — inflation expectations surging beyond what rates contain.",catalyst:"CPI/PPI
+hot, Fed behind curve, commodity super-cycle",low:{inst:"TIP",type:"TIPS Bond ETF",tech:"Buy TIP for direct inflation protection with
+bond stability. Stop 3%. Target +5-8%."},med:{inst:"UGL",type:"2x Gold ETF",tech:"Buy UGL. Yields + gold both rising = inflation
+driving both. Stop 10%. Target +15-22%."},high:{inst:"NUGT",type:"2x Gold Miners Bull",tech:"Buy NUGT — miners get double tailwind:
+higher revenue + inflation eroding fixed costs. Target +25-35%. Stop 15%."}},bear:{thesis:"Yields rising, gold falling — real rates
+crushing gold. Contrarian gold opportunity when yields peak.",catalyst:"Fed pivots dovish, economic weakness forces yield
+decline",low:{inst:"GLD",type:"SPDR Gold Shares",tech:"Accumulate GLD slowly. Buy in 3 tranches. Wide stop 8%. Target +10-15% on yield
+reversal."},med:{inst:"UGL",type:"2x Gold ETF",tech:"Buy UGL for leveraged contrarian gold. Gold bottoms before yields peak. Stop 12%.
+Target +20%."},high:{inst:"TLT + UGL",type:"Long Bonds + 2x Gold",tech:"Buy TLT (bet yields reverse) + UGL. If yields peak, both
+profit. Stop each 12%."}}},
+"OIL/GOLD":{bull:{thesis:"Oil surging while gold falls — energy inflation not flowing to gold. Gold is a coiled spring.",catalyst:"Gold
+catches up to oil-driven inflation, or central banks cap energy",low:{inst:"GLD",type:"SPDR Gold Shares",tech:"Buy GLD as
+mean-reversion bet. Gold/oil ratio normalizes within 4-8 weeks. Stop 6%. Target +10%."},med:{inst:"UGL",type:"2x Gold ETF",tech:"Buy
+UGL. Gold/oil at extremes = most reliable mean-reversion in commodities. Stop 10%. Target +18-22%."},high:{inst:"NUGT +
+NRGU",type:"Gold Miners + Oil Hedge",tech:"Buy NUGT as primary + small NRGU hedge. If oil stays high, NRGU protects. If gold catches
+up, NUGT outperforms massively."}},bear:{thesis:"Gold rising while oil falls — safe-haven bid but no inflation catalyst. Oil likely
+rebounds.",catalyst:"Oil supply normalizes or rebounds on constraints",low:{inst:"USO",type:"US Oil Fund",tech:"Buy USO betting oil
+mean-reverts higher vs gold. Stop 7%. Target +10%."},med:{inst:"UCO",type:"2x Crude Oil ETF",tech:"Buy UCO. Gold leading oil resolves
+with oil catching up. Stop 10%. Target +15-20%."},high:{inst:"GUSH",type:"2x Oil & Gas E&P Bull",tech:"Buy GUSH for leveraged E&P. Oil
+underperforming gold = mispricing. Highest beta to crude rebounds. Stop 12%. Target +20-30%."}}},
+"VIX/HYG":{bull:{thesis:"VIX spiking but credit holding — fear overdone, no systemic risk. Buy the fear.",catalyst:"VIX mean-reverts as
+options decay without credit contagion",low:{inst:"SPY",type:"S&P 500 ETF",tech:"Buy SPY. VIX spike + HYG holding resolves bullishly
+70%+ of time. Stop at swing low. Target +5-8%."},med:{inst:"SSO",type:"2x S&P 500 ETF",tech:"Buy SSO for 2x upside. Credit stable =
+elevated VIX temporary. Stop 10%. Target +15-20%."},high:{inst:"TQQQ",type:"3x Nasdaq-100 ETF",tech:"Buy TQQQ. High VIX + stable credit
+= fear without substance. Enter aggressively. Stop 10%. Target +25-35%."}},bear:{thesis:"Credit breaking while VIX calm — bond market
+sees risk options aren't pricing. Calm before storm.",catalyst:"Credit deterioration spills to equities, VIX spike
+delayed",low:{inst:"SH",type:"1x Inverse S&P 500",tech:"Buy SH as hedge. Credit leading VIX = calm-before-storm. Stop 5%. Target
++5-8%."},med:{inst:"SPXS",type:"3x Inverse S&P 500",tech:"Buy SPXS. Credit deterioration = most reliable leading indicator. Stop 10%.
+Target +15-25%."},high:{inst:"SQQQ",type:"3x Inverse Nasdaq",tech:"Buy SQQQ. When credit breaks and VIX catches up, tech hit hardest.
+Hard stop 12%. Target +20-35%."}}},
+"SPX/DXY":{bull:{thesis:"Dollar rising alongside equity decline — flight-to-safety bid. When dollar reverses, equities snap
+back.",catalyst:"Geopolitical de-escalation, Fed cut, dollar profit-taking triggers relief rally",low:{inst:"EFA",type:"Intl Developed
+ETF",tech:"Buy EFA — when dollar weakens, international stocks get double boost (returns + FX). Stop 6%. Target
++8-12%."},med:{inst:"UDN",type:"Bearish Dollar ETF",tech:"Buy UDN to bet on dollar reversal. Flight-to-safety unwind = dollar drops,
+risk rallies. Stop 8%. Target +10-15%."},high:{inst:"TQQQ",type:"3x Nasdaq-100 ETF",tech:"Buy TQQQ for max leverage on equity snapback.
+Dollar topping = massive risk-on signal. Watch DXY break 50-day MA. Stop 10%. Target +25%."}},bear:{thesis:"Dollar and stocks both
+falling — capital leaving US. Defensive positioning needed.",catalyst:"Foreign capital repatriation reverses, or Fed steps in with
+liquidity",low:{inst:"GLD",type:"SPDR Gold Shares",tech:"Buy GLD — dollar + stocks both falling = gold benefits. Capital needs
+somewhere. Stop 5%. Target +8-12%."},med:{inst:"UGL",type:"2x Gold ETF",tech:"Buy UGL. Dollar-down + stocks-down = gold's perfect
+storm. Stop 10%. Target +18-25%."},high:{inst:"NUGT + SQQQ",type:"Gold Miners + Short Nasdaq",tech:"Long NUGT + SQQQ. Both profit when
+dollar + equities fall simultaneously. Stop each 12%."}}},
+"SPX/GOLD":{bull:{thesis:"Gold not rallying despite equity selloff — safe-haven demand elsewhere. Gold underpriced for risk
+level.",catalyst:"Gold catches safe-haven bid as dollar reverses or credit stress emerges",low:{inst:"GLD",type:"SPDR Gold
+Shares",tech:"Accumulate GLD. Stocks selling without gold rallying = temporary suppression. Buy in thirds. Stop 6%. Target
++10%."},med:{inst:"UGL",type:"2x Gold ETF",tech:"Buy UGL for leveraged catch-up. Gold reasserts safe-haven within 2-4 weeks. Stop 12%.
+Target +18%."},high:{inst:"NUGT",type:"2x Gold Miners Bull",tech:"Buy NUGT. Miners doubly cheap — gold suppressed + equity selloff.
+When gold catches, miners outperform 3-5x. Stop 15%."}},bear:{thesis:"Both stocks and gold rising — risk-on with inflation hedge
+demand. Bullish for both.",catalyst:"Inflation fears + growth optimism coexist, broad liquidity expansion",low:{inst:"SPY",type:"S&P
+500 ETF",tech:"Buy SPY to ride dual rally. Stocks + gold both up = liquidity expansion. Stop at 200-day MA. Target
++5-8%."},med:{inst:"SSO + GLD",type:"2x S&P + Gold",tech:"Split SSO (2x stocks) + GLD. Captures both legs. Stop each 8%. Target
+combined +12-18%."},high:{inst:"TQQQ",type:"3x Nasdaq-100 ETF",tech:"Buy TQQQ. If even gold rallying with stocks, liquidity is
+abundant. Max long. Stop 10%. Target +20-30%."}}}
+};
+function obsCorr(a,b){const dA=Math.sign(a),dB=Math.sign(b),mA=Math.min(Math.abs(a)/5,1),mB=Math.min(Math.abs(b)/5,1);return
+dA*dB*Math.max((mA+mB)/2,0.3)}
+function runScan(){
+const cap=parseFloat(document.getElementById("capital").value)||2500;
+anomalies=[];trades=[];expanded={};
+CORRS.forEach(c=>{
+const o=obsCorr(indicators[c.pair[0]]?.change||0,indicators[c.pair[1]]?.change||0);
+const d=Math.abs(o-c.expected);
+if(d>0.5)anomalies.push({...c,observed:o,deviation:d,severity:d>1?"HIGH":d>0.7?"MEDIUM":"LOW"});
+});
+anomalies.sort((a,b)=>b.deviation-a.deviation);
+anomalies.forEach(a=>{
+const key=`${a.pair[0]}/${a.pair[1]}`;
+const r=RULES[key];if(!r)return;
+const isBull=a.observed>a.expected;
+const s=isBull?r.bull:r.bear;if(!s)return;
+const idx=trades.length;
+expanded[idx]=true;
+strats:{
+trades.push({id:key,thesis:s.thesis,anomaly_source:key,catalyst:s.catalyst,severity:a.severity,deviation:a.deviation,
+low_risk:{...s.low,pct:8,dollar:Math.round(.08*cap),rr:"2.5:1",tf:"2-4 weeks",ml:"~2% of portfolio"},
+medium_risk:{...s.med,pct:15,dollar:Math.round(.15*cap),rr:"3:1",tf:"1-2 weeks",ml:"~4% of portfolio"},
+high_risk:{...s.high,pct:25,dollar:Math.round(.25*cap),rr:"4:1+",tf:"1-5 days",ml:"~7% of portfolio"}
+}
+});
+});
+renderSidebar();renderContent();
+}
+function renderSidebar(){
+const sb=document.getElementById("sidebar");
+let h=`<div class="section-label"><div class="dot" style="background:var(--accent)"></div>Regime</div><div
+style="margin-bottom:12px">`;
+["bull"
+,
+"bear"
+,
+"stagflation"
+,
+"recession"
+,
+"range"].forEach(r=>{
+h+=`<span class="chip ${regime===r?"active":""}"
+onclick="regime='${r}';renderSidebar()">${r.charAt(0).toUpperCase()+r.slice(1)}</span>`;
+});
+h+=`</div><div class="section-label"><div class="dot" style="background:var(--neut)"></div>Indicators</div>`;
+Object.entries(IND_META).forEach(([k,m])=>{
+const v=indicators[k];
+const chgColor=v.change>=0?"var(--bull)":"var(--bear)";
+const chgBorder=v.change>=0?"border-color:#00e5a044":"border-color:#ff446644";
+h+=`<div class="ind-row"><div class="ind-dot" style="background:${m.color}"></div><span class="ind-label">${m.label}</span>
+<input type="number" step="any" value="${v.value}" class="ind-input" onchange="indicators['${k}'].value=parseFloat(this.value)||0">
+<input type="number" step="any" value="${v.change}" class="ind-change" style="color:${chgColor};${chgBorder}"
+onchange="indicators['${k}'].change=parseFloat(this.value)||0"></div>`;
+});
+// Matrix
+const keys=Object.keys(IND_META);
+h+=`<div class="section-label" style="margin-top:12px"><div class="dot" style="background:var(--warn)"></div>Matrix</div>`;
+h+=`<div class="matrix" style="grid-template-columns:22px repeat(${keys.length},1fr)"><div></div>`;
+keys.forEach(k=>{h+=`<div style="font-size:7px;text-align:center;color:${IND_META[k].color};font-weight:700">${k}</div>`;});
+keys.forEach(row=>{
+h+=`<div style="font-size:7px;color:${IND_META[row].color};font-weight:700;display:flex;align-items:center;justify-content:flex-en
+d;padding-right:2px">${row}</div>`;
+keys.forEach(col=>{
+const v=row===col?1:obsCorr(indicators[row]?.change||0,indicators[col]?.change||0);
+const an=anomalies.find(a=>(a.pair[0]===row&&a.pair[1]===col)||(a.pair[0]===col&&a.pair[1]===row));
+const clr=v>0?"#00e5a0":"#ff4466";
+const op=Math.round(Math.abs(v)*140).toString(16).padStart(2,"0");
+const bg=row===col?"#4a506833":`${clr}${op}`;
+const outline=an?";outline:2px solid var(--warn);outline-offset:-1px":"";
+const tc=Math.abs(v)>0.5?"var(--bg)":"var(--dim)";
+Lines 247–328
+h+=`<div class="matrix-cell" style="background:${bg};color:${tc}${outline}">${row!==col?v.toFixed(1):""}</div>`;
+});
+});
+h+=`</div>`;
+// Anomalies
+h+=`<div class="section-label"><div class="dot" style="background:var(--danger)"></div>Anomalies `;
+if(anomalies.length)h+=`<span style="background:var(--dangerD);color:var(--danger);padding:1px
+5px;border-radius:8px;font-size:9px;font-weight:700">${anomalies.length}</span>`;
+h+=`</div>`;
+if(!anomalies.length)h+=`<div
+style="padding:16px;text-align:center;color:var(--dim);font-size:10px">${trades.length===0&&anomalies.length===0?"Run scan to
+detect":"No anomalies found"}</div>`;
+anomalies.forEach((a,i)=>{
+const sc=a.severity;
+h+=`<div class="anomaly-card fade" style="animation-delay:${i*50}ms">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+<span style="font-weight:700;font-size:11px">${a.pair[0]}<span style="color:var(--dim)">/</span>${a.pair[1]}</span>
+<span class="severity sev-${sc}">${sc}</span>
+</div>
+<div style="font-size:9px;color:var(--muted)">${a.desc}</div>
+<div style="display:flex;gap:8px;font-size:9px;margin-top:2px">
+<span style="color:var(--dim)">Exp:<span
+style="color:${a.expected>0?"var(--bull)":"var(--bear)"};font-weight:600">${a.expected>0?"+":""}${a.expected.toFixed(2)}</span></span>
+<span style="color:var(--dim)">Obs:<span
+style="color:${a.observed>0?"var(--bull)":"var(--bear)"};font-weight:600">${a.observed>0?"+":""}${a.observed.toFixed(2)}</span></span>
+<span style="color:var(--warn);font-weight:600">∆${a.deviation.toFixed(2)}</span>
+</div>
+</div>`;
+});
+sb.innerHTML=h;
+}
+function toggleTrade(i){expanded[i]=!expanded[i];renderContent();}
+function setFilter(f){riskFilter=f;renderContent();}
+function riskCardHTML(level,data){
+const meta={low_risk:{label:"LOW RISK",color:"var(--low)",cls:"low",icon:"■",desc:"Conservative • Unleveraged ETFs • Wide Stops"},
+medium_risk:{label:"MEDIUM RISK",color:"var(--med)",cls:"med",icon:"■",desc:"Balanced • 2x Leveraged • Swing Trades"},
+high_risk:{label:"HIGH RISK",color:"var(--high)",cls:"high",icon:"◆",desc:"Aggressive • 3x Leverage / Options • Max
+Conviction"}}[level];
+if(!data)return"";
+return `<div class="risk-card ${meta.cls} fade">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<span class="risk-badge ${meta.cls}">${meta.icon} ${meta.label}</span>
+<span style="font-size:12px;font-weight:700;color:var(--accent)">${data.rr}</span>
+</div>
+<div style="font-size:9px;color:${meta.color};margin-bottom:8px;opacity:.7">${meta.desc}</div>
+<div class="metric-grid">
+<div class="metric-box"><div class="metric-label">Instrument</div><div class="metric-val">${data.inst}</div><div
+class="metric-sub">${data.type}</div></div>
+<div class="metric-box"><div class="metric-label">Position Size</div><div class="metric-val">${data.pct}%</div><div
+class="metric-sub">~$${data.dollar?.toLocaleString()}</div></div>
+<div class="metric-box"><div class="metric-label">Timeframe</div><div class="metric-val">${data.tf}</div><div
+class="metric-sub">${data.ml}</div></div>
+</div>
+<div class="technique-box ${meta.cls}">
+<div class="technique-label" style="color:${meta.color}">■ Execution Technique</div>
+<div class="technique-text">${data.tech}</div>
+</div>
+</div>`;
+}
+function renderContent(){
+const ct=document.getElementById("content");
+if(!trades.length&&!anomalies.length&&!document.querySelector(".anomaly-card")){
+ct.innerHTML=`<div class="empty"><div class="empty-icon">■</div><div
+style="font-size:13px;font-family:var(--fontD);font-weight:600">Ready to Scan</div>
+<div style="font-size:11px;max-width:360px;line-height:1.7">Enter indicator values, select regime, hit <span
+style="color:var(--accent)">Scan</span>. Generates LOW / MEDIUM / HIGH risk strategies with specific instruments, sizing, and
+step-by-step techniques.</div></div>`;
+return;
+}
+const regNotes={stagflation:"Stagflationary regime — oil up, stocks down, yields rising. Energy longs and equity shorts dominate."
+bear:"Bear market — risk-off. Inverse ETFs and safe-havens favored.",bull:"Bull market — dislocations are mean-reversion buying
+,
+opportunities."
+,
+recession:"Recessionary — demand destruction. Long bonds and defensives.",range:"Range-bound — mean-reversion highest
+probability."};
+let h=`<div class="regime-box"><span
+style="color:var(--accent);font-weight:700;margin-right:6px">REGIME:</span>${regNotes[regime]||""} ${anomalies.length} anomalies
+detected.</div>`;
+if(!trades.length)h+=`<div style="padding:20px;text-align:center;color:var(--accent);font-size:12px">✓ All correlations normal — no
+dislocations.</div>`;
+if(trades.length){
+h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px">Execution Strategies
+(${trades.length})</div>
+<div>`;
+[{id:"all",l:"ALL",c:"var(--text)"},{id:"low_risk",l:"LOW",c:"var(--low)"},{id:"medium_risk",l:"MED",c:"var(--med)"},{id:"high_ris
+k",l:"HIGH",c:"var(--high)"}].forEach(f=>{
+const act=riskFilter===f.id;
+h+=`<span class="filter-chip${act?" active":""}" style="${act?`color:${f.c};border-color:${f.c};background:${f.c}22`:""}"
+onclick="setFilter('${f.id}')">${f.l}</span>`;
+});
+h+=`</div></div>`;
+trades.forEach((t,i)=>{
+const isOpen=expanded[i];
+h+=`<div class="trade-card fade" style="animation-delay:${i*80}ms">
+<div class="trade-header ${isOpen?"open":""}" onclick="toggleTrade(${i})">
+Lines 329–355
+<div style="display:flex;align-items:center;gap:8px">
+<span class="severity sev-${t.severity}">${t.severity}</span>
+<span style="font-weight:700;font-size:11px;color:var(--warn)">${t.anomaly_source}</span>
+</div>
+<span style="font-size:14px;color:var(--dim);transform:rotate(${isOpen?180:0}deg);transition:transform
+.2s;display:inline-block">■</span>
+</div>
+<div class="trade-thesis">${t.thesis}<div style="font-size:9px;color:var(--dim);margin-top:3px"><span
+style="color:var(--accent)">Catalyst:</span> ${t.catalyst}</div></div>`;
+if(isOpen&&t.strats){
+h+=`<div class="trade-body">`;
+if(riskFilter==="all"||riskFilter==="low_risk")h+=riskCardHTML("low_risk",t.strats.low_risk);
+if(riskFilter==="all"||riskFilter==="medium_risk")h+=riskCardHTML("medium_risk",t.strats.medium_risk);
+if(riskFilter==="all"||riskFilter==="high_risk")h+=riskCardHTML("high_risk",t.strats.high_risk);
+h+=`</div>`;
+}
+});
+h+=`</div>`;
+}
+ct.innerHTML=h;
+}
+// Initial render
+renderSidebar();
+renderContent();
+</script>
+</body>
+</html>
